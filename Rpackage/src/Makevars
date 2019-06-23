@@ -1,0 +1,3 @@
+PKG_LIBS=-L../bin -lnetdecode $(SHLIB_OPENMP_CXXFLAGS) $(BLAS_LIBS) $(LAPACK_LIBS)  -lpthread -lm  -DARMA_64BIT_WORD 
+PKG_CXXFLAGS+=-I../inst/include $(SHLIB_OPENMP_CXXFLAGS) -w -std=c++11 -DDEBUG -msse2
+CXX_STD=CXX11

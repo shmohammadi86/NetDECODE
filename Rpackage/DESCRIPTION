@@ -1,0 +1,11 @@
+Package: NetDECODE
+Type: Package
+Title: NetDECODE
+Version: 1.0
+Date: 2018-06-01
+Author: Shahin Mohammadi
+Maintainer: Shahin Mohammadi <mohammadi@broadinstitute.org>
+Description: This package is designed to employ the sparsity pattern of the single-cell profiles, ignoring the actual values, to uncover gene-gene relationships.
+License: GPL (>= 2)
+Imports: Rcpp (>= 0.12.12)
+LinkingTo: Rcpp,RcppArmadillo

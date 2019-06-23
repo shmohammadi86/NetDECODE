@@ -1,0 +1,41 @@
+---
+title: "NetDECODE demo"
+author: "Shahin Mohammadi"
+date: "April 1, 2019"
+output: html_document
+---
+
+# Import expression matrix and convert it to an SCE object
+```{r message=FALSE, warning=FALSE}
+require(Matrix)
+require(scater)
+require(igraph)
+
+input_path = '../../input/PBMC/'
+
+# Load expression profile
+sce = readRDS(paste(input_path, 'preprocessed.RDS', sep='/'))
+Labels = factor(sce$Labels, levels = sort(unique(sce$Labels)))
+```
+
+
+## DECODE
+```{r}
+library(NetDECODE)
+
+A = as(matrix(as.double(logcounts(sce)), nrow = nrow(sce)), 'sparseMatrix');
+rownames(A) = rownames(sce)
+
+logPval = NetDECODE(A)
+G = pruneNetwork(logPval)
+
+activityScores = t(G) %*% A;
+rownames(activityScores) = rownames(sce)
+
+plot(activityScores['CD3G', ]) # T-cells
+
+plot(activityScores['CD79A', ]) # B-cells
+plot(activityScores['MNDA', ]) # Mono
+
+```
+
