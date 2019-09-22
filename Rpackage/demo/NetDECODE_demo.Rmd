@@ -11,31 +11,90 @@ require(Matrix)
 require(scater)
 require(igraph)
 
-input_path = '../../input/PBMC/'
-
 # Load expression profile
-sce = readRDS(paste(input_path, 'preprocessed.RDS', sep='/'))
-Labels = factor(sce$Labels, levels = sort(unique(sce$Labels)))
+sce = readRDS('reduced_sce.RDS')
+
+S = sce@assays[["logcounts"]]
+Labels = sce$Labels
+  
+require(NetDECODE)
+require(ACTIONet)
+
 ```
 
 
-## DECODE
+## Pairwise co-observability/activity of gene pairs
 ```{r}
-library(NetDECODE)
+logPvals = asssessCoactivity(S)
 
-A = as(matrix(as.double(logcounts(sce)), nrow = nrow(sce)), 'sparseMatrix');
-rownames(A) = rownames(sce)
+# Use CD19 as a probe
 
-logPval = NetDECODE(A)
-G = pruneNetwork(logPval)
+row = match("CD19", rownames(sce))
+gene.order = order(logPvals[row, ], decreasing = TRUE)
 
-activityScores = t(G) %*% A;
-rownames(activityScores) = rownames(sce)
+rownames(sce)[gene.order[1:20]]
 
-plot(activityScores['CD3G', ]) # T-cells
 
-plot(activityScores['CD79A', ]) # B-cells
-plot(activityScores['MNDA', ]) # Mono
+```
+
+## Sparsify and construct a graph
+```{r}
+Adj.dir = constructKstarNN(logPvals)
+Adj = symmetrizeNetwork(Adj.dir)
+
+# ## Network-enhancement
+# A = as(Adj, 'dgTMatrix')
+# eps = 1e-16
+# rs = Matrix::rowSums(A)
+# P = sparseMatrix(i = A@i+1, j = A@j+1, x = A@x/rs[A@i+1], dims = dim(A))  
+# 
+# # Transition field
+# w = sqrt(Matrix::colSums(P)+eps)
+# W = P %*% Matrix::Diagonal(x = 1/w, n = length(w))
+# Adj = W %*% Matrix::t(W)
+
+require(igraph)
+G = graph_from_adjacency_matrix(as(symmetrizeNetwork(Adj), 'sparseMatrix'), mode = "undirected", weighted = TRUE)
+clusters = cluster_louvain(G)$membership
+
+counts = table(clusters)
+
+
+modules = lapply(names(counts)[counts >= 30], function(x) {
+  mask = clusters %in% x
+  subAdj = G[mask, mask]
+  subG = graph_from_adjacency_matrix(subAdj, weighted = TRUE, mode = "undirected")
+  V(subG)$name = rownames(sce)[mask]
+  return(subG)
+})
+
+Sorted.genes = lapply(modules, function(g) {
+  pr = page_rank(g)$vector
+  perm = order(pr, decreasing = TRUE)
+  sorted.genes = V(g)$name[perm]
+  print(sorted.genes[1:10])
+  return(sorted.genes)
+})
+
+```
+
+## Use network context to predict pvalue of activity
+```{r}
+markers = c("CD79A", "CD14", "GZMB", "CD3G")
+cols = 1:ncol(sce)
+rows = match(markers, rownames(sce))
+activity.scores = t(predictActivityScores(S, rows, cols, Adj.dir))
+colnames(activity.scores) = markers
+
+df = as.data.frame(activity.scores)
+df$celltype = sce$Labels
+
+df = reshape2::melt(df)
+colnames(df) = c("celltype", "gene", "value")
+
+require(ggpubr)
+ggbarplot(df, x = "celltype", y = "value", color = "gene", fill = "gene", position = position_dodge(0.9))
+
 
 ```
 

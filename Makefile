@@ -2,16 +2,13 @@ UNAME=$(shell uname -s)
 LIBNAME:=libnetdecode.a
 
 
-CXXFLAGS=-g3 -std=c++11 -pthread -fopenmp -w -m64 -fPIC -march=native -O4 -DUSE_BLAS_LIB -DAXPBY -DINT_64BITS -DDEBUG
+CXXFLAGS=-g3 -std=c++11 -pthread -w -m64 -fPIC -march=native -O4 -DUSE_BLAS_LIB -DAXPBY -DINT_64BITS -DDEBUG
 ifeq ($(UNAME),Linux)
 	CXX=g++
 	LINALG=-lopenblas -llapack
-	#MKLROOT=/opt/intel/compilers_and_libraries_2018.0.128/linux/mkl
-	#LINALG=-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_rt -lm -ldl
-	#LINALG=-Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_sequential.a ${MKLROOT}/lib/intel64/libmkl_core.a -Wl,--end-group -ldl
 endif	
 ifeq ($(UNAME),Darwin)
-	CXX=/usr/local/opt/llvm/bin/clang++
+	CXX=clang++
 	LINALG=-framework accelerate
 	CXXFLAGS+=-DACCELERATE
 endif
@@ -46,7 +43,7 @@ NetDECODE: $(LIBNAME) src/main.o
 
 	
 matlab/%.mexa64: matlab/%.cc
-	$(MEX) $< -outdir matlab/ $(LIBNAME) $(INCLUDE) LDFLAGS="${LIB_FLAGS} -fopenmp" CXXFLAGS="-fopenmp -std=c++11 -fPIC" 	
+	$(MEX) $< -outdir matlab/ $(LIBNAME) $(INCLUDE) LDFLAGS="${LIB_FLAGS}" CXXFLAGS="-std=c++11 -fPIC" 	
 
 matlab: $(LIBNAME) $(MATLAB_MEX)
 		
