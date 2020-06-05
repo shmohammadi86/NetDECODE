@@ -32,7 +32,9 @@ namespace NetDECODEns {
 		
 		logPvals.diag().zeros();		
 		
-		logPvals /= log(10); // Change log-base
+		logPvals.replace(datum::nan, 0);
+		
+		// logPvals /= log(10); // Change log-base
 		
 		return logPvals;
 	}
@@ -42,20 +44,14 @@ namespace NetDECODEns {
 	mat constructKstarNN(mat &logPvals, double L_C = 1.0, double pval_threshold = 0.01) {
 		printf("Running k*-nearest neighbors algorithm\n");
 		
-		logPvals = clamp(logPvals, 0, 300);		
-		mat D = exp(-logPvals); // p-values		
-				
+		logPvals = clamp(logPvals, 0, 300);						
 		mat G_prime = zeros(size(logPvals));
 		
 		int gene_no = logPvals.n_rows;
 		for(int i = 0; i < gene_no; i++) {
-			vec d = D.col(i);
-			double counts = sum(d < 1);
-			
-			if(counts == 0) {
-				continue;
-			}
-			
+			vec w = logPvals.col(i);
+			vec d = 1/w;
+						
 			uvec perm = sort_index(d, "ascend");			
 			vec beta = L_C * d(perm);		
 			
@@ -63,7 +59,7 @@ namespace NetDECODEns {
 			double lambda = beta(0)+1;
 			
 			double last_lambda = lambda;
-			for(k = 0; k < counts; k++) {
+			for(k = 1; k < beta.n_elem; k++) {
 				if(lambda <= beta(k))
 					break;
 				else {
@@ -75,13 +71,13 @@ namespace NetDECODEns {
 
 				lambda = (1.0 / k) * ( Sum_beta + sqrt( k  + std::pow(Sum_beta, 2) - k * Sum_beta_square ) ) ; 				
 			}
-			int knn = (int)(k-1);
-						
+			int knn = (int)(k-1);			
+			/*		
 			vec w = last_lambda-beta(span(0, knn));//last_lambda - beta(span(0, knn));
 			w /= sum(w);
-									
+			*/					
 			vec v = zeros(gene_no);
-			v(perm(span(0, knn))) = w;
+			v(perm(span(0, knn))) = w(perm(span(0, knn)));
 			
 			G_prime.col(i) = v;
 		}
@@ -119,9 +115,12 @@ namespace NetDECODEns {
 			vec Delta = (Obs / Exp) - 1;
 			
 			for(int i = 0; i < rows.n_elem; i++) {				
-				logPvals(i, j) = Exp(i) * (pow(1 + Delta(i), 1+Delta(i)) - Delta(i));
+				//logPvals(i, j) = Exp(i) * (pow(1 + Delta(i), 1+Delta(i)) - Delta(i));
+				logPvals(i, j) = Exp(i) * ((1 + Delta(i))*log(1+Delta(i)) - Delta(i));
 			}
 		}
+		
+		logPvals /= log(10); // Change log-base		
 
 		return(logPvals);
 	}

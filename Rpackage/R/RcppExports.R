@@ -5,7 +5,7 @@ asssessCoactivity <- function(A) {
     .Call(`_NetDECODE_asssessCoactivity`, A)
 }
 
-constructKstarNN <- function(logPvals, L_C = 1.0, pval_threshold = 0.01) {
+constructKstarNN <- function(logPvals, L_C = 5.0, pval_threshold = 0.01) {
     .Call(`_NetDECODE_constructKstarNN`, logPvals, L_C, pval_threshold)
 }
 

@@ -22,7 +22,7 @@ mat asssessCoactivity(sp_mat &A) {
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-mat constructKstarNN(mat &logPvals, double L_C = 1.0, double pval_threshold = 0.01) {
+mat constructKstarNN(mat &logPvals, double L_C = 5.0, double pval_threshold = 0.01) {
 
 	mat G = NetDECODEns::constructKstarNN(logPvals, L_C, pval_threshold);
 	
