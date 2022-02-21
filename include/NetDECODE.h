@@ -7,7 +7,6 @@
 #define ARMA_64BIT_WORD
 #define ARMA_BLAS_LONG_LONG
 
-#include <omp.h>
 #include <stdio.h>
 #include <vector>
 #include <string>
