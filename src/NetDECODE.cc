@@ -1,6 +1,8 @@
 #include <NetDECODE.h>
 
 namespace NetDECODEns {
+	// [[Rcpp::depends(RcppArmadillo)]]
+	// [[Rcpp::export]]	
 	mat asssessCoactivity(sp_mat &A) {
 		int Nr = A.n_rows;
 		int Nc = A.n_cols;
@@ -39,7 +41,8 @@ namespace NetDECODEns {
 		return logPvals;
 	}
 
-	
+	// [[Rcpp::depends(RcppArmadillo)]]
+	// [[Rcpp::export]]	
 	// From:: Anava, O. & Levy, K. k\ast -Nearest Neighbors: From Global to Local. in Advances in Neural Information Processing Systems 29 (eds. Lee, D. D., Sugiyama, M., Luxburg, U. V, Guyon, I. & Garnett, R.) 4916–4924 (Curran Associates, Inc., 2016).
 	mat constructKstarNN(mat &logPvals, double L_C = 1.0, double pval_threshold = 0.01) {
 		printf("Running k*-nearest neighbors algorithm\n");
@@ -85,6 +88,8 @@ namespace NetDECODEns {
 		return(G_prime);
 	}
 	
+	// [[Rcpp::depends(RcppArmadillo)]]
+	// [[Rcpp::export]]
 	// Uses geometric mean of the edge weights
 	mat symmetrizeNetwork(mat &G) {
 		mat Gt = trans(G);		
@@ -93,7 +98,8 @@ namespace NetDECODEns {
 		return(G_sym);
 	}
 	
-	
+	// [[Rcpp::depends(RcppArmadillo)]]
+	// [[Rcpp::export]]	
 	mat predictActivityScores(sp_mat &A, uvec rows, uvec cols, mat &G) {	
 		mat logPvals = zeros(rows.n_elem, cols.n_elem);
 		
