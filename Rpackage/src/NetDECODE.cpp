@@ -1,11 +1,6 @@
 #include <NetDECODE.h>
 #include <RcppArmadillo.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-// [[Rcpp::plugins(openmp)]]
-
 using namespace Rcpp;
 using namespace arma;
 
